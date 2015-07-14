@@ -6,23 +6,27 @@ server {
   return 503;
 }
 
+{{ $ports := (coalesce $.Env.PROXY_PORTS "80") }}
+{{ range $index, $port := split $ports "," }}
+
 {{ range $environ, $containers := groupByMulti $ "Labels.envy" "," }}
 
-upstream {{ $environ }} {
+upstream {{ $environ }}_{{ $port }} {
   {{ range $container := $containers }}
-    server {{ $container.IP }}:80;
+    server {{ $container.IP }}:{{ $port }};
   {{ end }}
 }
 server {
   gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
+  listen {{ $port }};
   server_name {{ $environ }}.{{ $.Env.ROOT_HOST }};
   proxy_buffering off;
   error_log /proc/self/fd/2;
   access_log /proc/self/fd/1;
 
   location / {
-    proxy_pass http://{{ $environ }};
+    proxy_pass http://{{ $environ }}_{{ $port }};
     proxy_set_header Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -33,4 +37,5 @@ server {
     proxy_set_header Connection "";
   }
 }
+{{ end }}
 {{ end }}
