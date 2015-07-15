@@ -7,15 +7,17 @@ RUN apk-install curl nginx \
     | tar -zxC /bin \
  && entrykit --symlink
 
-# Configure Nginx the way we want
-COPY nginx.conf /etc/nginx/nginx.conf
-
 ENV DOCKER_GEN_VERSION 0.4.0
 RUN curl -Ls https://github.com/jwilder/docker-gen/releases/download/$DOCKER_GEN_VERSION/docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz \
     | tar -C /usr/local/bin -xvz
 
 COPY . /app/
 WORKDIR /app/
+
+# Configure Nginx the way we want
+RUN rm -f /etc/nginx/nginx.conf \
+    && ln -s /app/nginx.conf /etc/nginx/nginx.conf \
+    && touch /etc/nginx/conf.d/envy.conf
 
 ENV DOCKER_HOST unix:///tmp/docker.sock
 
