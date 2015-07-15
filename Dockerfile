@@ -7,12 +7,10 @@ RUN apk-install curl nginx \
     | tar -zxC /bin \
  && entrykit --symlink
 
-# Configure Nginx and apply fix for very long server names
-RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
- && sed -i 's/^http {/&\n    server_names_hash_bucket_size 128;/g' /etc/nginx/nginx.conf
+# Configure Nginx the way we want
+COPY nginx.conf /etc/nginx/nginx.conf
 
 ENV DOCKER_GEN_VERSION 0.4.0
-
 RUN curl -Ls https://github.com/jwilder/docker-gen/releases/download/$DOCKER_GEN_VERSION/docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz \
     | tar -C /usr/local/bin -xvz
 
