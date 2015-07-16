@@ -1,0 +1,5 @@
+#!/bin/sh
+docker-gen -watch \
+           -notify "nginx -s reload" \
+           /app/envy.tmpl \
+           /etc/nginx/conf.d/envy.conf

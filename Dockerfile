@@ -1,31 +1,24 @@
-FROM nginx:1.9.2
+FROM gliderlabs/alpine:3.2
 MAINTAINER Greg Allen code@firstandthird.com
 
-# Install wget and install/updates certificates
-RUN apt-get update \
- && apt-get install -y -q --no-install-recommends \
-    ca-certificates \
-    wget \
- && apt-get clean \
- && rm -r /var/lib/apt/lists/*
-
-# Configure Nginx and apply fix for very long server names
-RUN echo "daemon off;" >> /etc/nginx/nginx.conf \
- && sed -i 's/^http {/&\n    server_names_hash_bucket_size 128;/g' /etc/nginx/nginx.conf
-
-# Install Forego
-RUN wget -P /usr/local/bin https://godist.herokuapp.com/projects/ddollar/forego/releases/current/linux-amd64/forego \
- && chmod u+x /usr/local/bin/forego
+# Install nginx, curl and entrykit
+RUN apk-install curl nginx \
+ && curl -Ls https://github.com/progrium/entrykit/releases/download/v0.2.0/entrykit_0.2.0_Linux_x86_64.tgz \
+    | tar -zxC /bin \
+ && entrykit --symlink
 
 ENV DOCKER_GEN_VERSION 0.4.0
-
-RUN wget https://github.com/jwilder/docker-gen/releases/download/$DOCKER_GEN_VERSION/docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz \
- && tar -C /usr/local/bin -xvzf docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz \
- && rm /docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz
+RUN curl -Ls https://github.com/jwilder/docker-gen/releases/download/$DOCKER_GEN_VERSION/docker-gen-linux-amd64-$DOCKER_GEN_VERSION.tar.gz \
+    | tar -C /usr/local/bin -xvz
 
 COPY . /app/
 WORKDIR /app/
 
+# Configure Nginx the way we want
+RUN rm -f /etc/nginx/nginx.conf \
+    && ln -s /app/nginx.conf /etc/nginx/nginx.conf \
+    && touch /etc/nginx/conf.d/envy.conf
+
 ENV DOCKER_HOST unix:///tmp/docker.sock
 
-CMD ["forego", "start", "-r"]
+CMD ["codep", "nginx", "/app/docker-events-handler"]
