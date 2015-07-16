@@ -1,6 +1,6 @@
 # envy-proxy
 
-`envy-proxy` is a reverse proxy to all of your [envy](https://github.com/progrium/envy) environments. For example `http://app.name.example.com` will proxy to the `app` envy environment under the `name` user at port 80.
+`envy-proxy` is a reverse proxy to all of your [envy](https://github.com/progrium/envy) environments. For example `http://80-app-name.example.com` will proxy to the `app` envy environment under the `name` user at port 80.
 
 * Make sure you set the ROOT_HOST
 * Make sure your root host has a wildcard dns entry for it
@@ -41,8 +41,8 @@ Will allow accessing environments from `80`, `8080` and `3000` ports.
 ## How does it work?
 
 Once started, `envy-proxy` will listen to Docker events and will set up its
-nginx instance to forward `http://<port>-<user>-<envy-environment>.<HOST_ROOT>`
+nginx instance to forward `http://<port>-<envy-environment>-<user>.<HOST_ROOT>`
 requests to the underlying Envy environment on the corresponding port.
 
 For example, if you run a web server on port `8080` from a `username+webapp@envy.host`
-session, you'll be able to reach it on your browser using `http://8080-username-webapp.<HOST_ROOT>`
+session, you'll be able to reach it on your browser using `http://8080-webapp-username.<HOST_ROOT>`
